@@ -291,6 +291,7 @@ OPTION_HELP=no
 OPTION_STRIP=no
 OPTION_MINGW=no
 OPTION_UI=
+OPTION_MULTISIM=1
 
 GLES_SUPPORT=no
 
@@ -354,6 +355,8 @@ for opt do
   ;;
   --ui=*) echo "Unknown --ui value, try one of: sdl2 qt"
   ;;
+  --multisim=*) OPTION_MULTISIM=$optarg
+  ;;
   *)
     echo "unknown option '$opt', use --help"
     exit 1
@@ -386,6 +389,7 @@ EOF
     if [ "$IN_ANDROID_REBUILD_SH" ]; then
         echo "  --build-qemu-android        Also build qemu-android binaries"
     fi
+    echo "  --multisim               the number of modem devices, default 1, max 9."
     echo ""
     exit 1
 fi
@@ -894,6 +898,8 @@ case "$HOST_OS" in
 esac
 
 echo "#define CONFIG_ANDROID       1" >> $config_h
+
+echo "#define MAX_GSM_DEVICES  $OPTION_MULTISIM" >> $config_h
 
 log "Generate   : $config_h"
 
