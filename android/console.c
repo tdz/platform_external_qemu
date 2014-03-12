@@ -3321,12 +3321,15 @@ do_nfc_ntf( ControlClient  client, char*  args )
         if (goldfish_nfc_send_ntf(nfc_rf_intf_activated_ntf_cb, &param) < 0) {
             /* error message generated in create function */
             return -1;
+        } else if (param.re) {
+            control_write(client, "%d\r\n", param.re->id);
+        } else {
+            control_write(client, "0\r\n");
         }
     } else {
         control_write(client, "KO: invalid operation '%s'\r\n", p);
         return -1;
     }
-
     return 0;
 }
 
