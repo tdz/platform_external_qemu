@@ -3559,6 +3559,14 @@ nfc_send_snep_put_cb(void* data,
         param->dsap = nfc->active_re->last_dsap;
         param->ssap = nfc->active_re->last_ssap;
     }
+    if (!param->dsap) {
+        control_write(param->client, "KO: DSAP is 0\r\n");
+        return -1;
+    }
+    if (!param->ssap) {
+        control_write(param->client, "KO: SSAP is 0\r\n");
+        return -1;
+    }
     res = nfc_re_send_snep_put(nfc->active_re, param->dsap, param->ssap,
                                create_snep_cp, data);
     if (res < 0) {
@@ -3634,6 +3642,14 @@ nfc_recv_snep_put_cb(void* data,  struct nfc_device* nfc)
     if ((param->dsap < 0) && (param->ssap < 0)) {
         param->dsap = nfc->active_re->last_dsap;
         param->ssap = nfc->active_re->last_ssap;
+    }
+    if (!param->dsap) {
+        control_write(param->client, "KO: DSAP is 0\r\n");
+        return -1;
+    }
+    if (!param->ssap) {
+        control_write(param->client, "KO: SSAP is 0\r\n");
+        return -1;
     }
     res = nfc_re_recv_snep_put(nfc->active_re, param->dsap, param->ssap,
                                nfc_recv_process_ndef_cb, data);
