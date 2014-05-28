@@ -3543,7 +3543,7 @@ create_snep_cp(void *data, size_t len, struct snep* snep)
 static ssize_t
 nfc_send_snep_put_cb(void* data,
                      struct nfc_device* nfc,
-                     size_t maxlen, union nci_packet* ntf)
+                     size_t maxlen, union nci_packet* dta)
 {
     struct nfc_snep_param* param;
     ssize_t res;
@@ -3568,7 +3568,7 @@ nfc_send_snep_put_cb(void* data,
         return -1;
     }
     res = nfc_re_send_snep_put(nfc->active_re, param->dsap, param->ssap,
-                               create_snep_cp, data);
+                               create_snep_cp, data, maxlen, dta);
     if (res < 0) {
         control_write(param->client, "KO: 'snep put' failed\r\n");
         return -1;
@@ -3926,7 +3926,7 @@ do_nfc_snep( ControlClient  client, char*  args )
                 return -1;
             }
         } else {
-            /* put SNEP request onto SNEP server */
+            /* get SNEP request from SNEP server */
             if (goldfish_nfc_recv_dta(nfc_recv_snep_put_cb, &param) < 0) {
                 /* error message generated in create function */
                 return -1;
@@ -4138,7 +4138,7 @@ nfc_llcp_connect_cb(void* data, struct nfc_device* nfc, size_t maxlen,
         control_write(param->client, "KO: LLCP connect failed\r\n");
         return -1;
     }
-    return 0;
+    return res;
 }
 
 static int
