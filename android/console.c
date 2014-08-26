@@ -4330,6 +4330,94 @@ static const CommandDefRec  nfc_commands[] =
 /********************************************************************************************/
 /********************************************************************************************/
 /*****                                                                                 ******/
+/*****                             S E     C O M M A N D S                             ******/
+/*****                                                                                 ******/
+/********************************************************************************************/
+/********************************************************************************************/
+
+struct se_connectivity_param {
+    ControlClient client;
+    char* aid;
+};
+
+#define SE_CONNECTIVITY_PARAM_INIT(_client) \
+    { \
+        .client = (_client), \
+        .aid = NULL \
+    }
+
+static ssize_t
+se_connectivity_evt_transaction_cb(void* data,
+                                   struct nfc_device* nfc,
+                                   size_t maxlen, union nci_packet* dta)
+{
+    struct se_connectivity_param* param;
+    size_t len;
+    ssize_t res;
+
+    param = data;
+    assert(param);
+
+    len = strlen(param->aid) + 1; /* count trailing \0 */
+
+    res = nfc_create_nci_dta(dta, NCI_PBF_END, 0, len);
+    if (res < 0) {
+        control_write(param->client, "KO: 'connectivity evt_transaction' failed\r\n");
+        return -1;
+    }
+
+    /* We abuse the RFU byte to signal the kernel driver that this data
+     * message has a special meaning. */
+    dta->data.rfu = 1;
+
+    memcpy(dta->data.payload, param->aid, len+1);
+
+    return res;
+}
+
+static int
+do_se_connectivity( ControlClient client, char*  args )
+{
+    char* p;
+
+    if (!args) {
+        control_write(client, "KO: no arguments given\r\n");
+        return -1;
+    }
+
+    p = strsep(&args, " ");
+    if (!p) {
+        control_write(client, "KO: no operation given\r\n");
+        return -1;
+    }
+    if (!strcmp(p, "evt_transaction")) {
+        struct se_connectivity_param param = SE_CONNECTIVITY_PARAM_INIT(client);
+
+        param.aid = strdup(args);
+
+        if (goldfish_nfc_send_dta(se_connectivity_evt_transaction_cb, &param) < 0) {
+            /* error message generated in create function */
+            return -1;
+        }
+    }
+
+    return 0;
+}
+
+static const CommandDefRec se_commands[] =
+{
+    { "connectivity", "manage HCI connectivity gate",
+      "'se connectivity evt_transaction <aid>' send EVT_TRANSACTION for given AID <aid>\r\n",
+      NULL,
+      do_se_connectivity, NULL },
+
+    { NULL, NULL, NULL, NULL, NULL, NULL }
+};
+
+
+/********************************************************************************************/
+/********************************************************************************************/
+/*****                                                                                 ******/
 /*****                         M O D E M   C O M M A N D                               ******/
 /*****                                                                                 ******/
 /********************************************************************************************/
@@ -5124,6 +5212,10 @@ static const CommandDefRec   main_commands[] =
     { "nfc", "NFC related commands",
       "allows you to modify/retrieve NFC states and send notifications\r\n", NULL,
       NULL, nfc_commands },
+
+    { "se", "SE related commands",
+      "allows you to modify/retrieve SE states and send events\r\n", NULL,
+      NULL, se_commands },
 
     { "modem", "Modem related commands",
       "allows you to modify/retrieve modem info\r\n", NULL,
