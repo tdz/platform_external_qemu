@@ -168,7 +168,8 @@ start-emulator-library = \
     $(eval LOCAL_AR := $(MY_AR)) \
     $(eval LOCAL_LDLIBS := $(MY_LDLIBS)) \
     $(eval LOCAL_MODULE := $1) \
-    $(eval LOCAL_MODULE_CLASS := STATIC_LIBRARIES)
+    $(eval LOCAL_MODULE_CLASS := STATIC_LIBRARIES) \
+    $(eval LOCAL_MODULE_TAGS := optional)
 
 # Used with start-emulator-library
 end-emulator-library = \
@@ -178,7 +179,8 @@ end-emulator-library = \
 # program instead. Use with end-emulator-program
 start-emulator-program = \
     $(call start-emulator-library,$1) \
-    $(eval LOCAL_MODULE_CLASS := EXECUTABLES)
+    $(eval LOCAL_MODULE_CLASS := EXECUTABLES) \
+    $(eval LOCAL_MODULE_TAGS := optional)
 
 # A varient of end-emulator-library for host programs instead
 end-emulator-program = \
